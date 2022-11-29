@@ -15,6 +15,7 @@ import javafx.scene.layout.BorderPane;
 public class MainController implements Initializable {
 	
 	private AlumnosController alumnosController;
+	private GrupoController grupoController;
 	
 	@FXML
 	private Tab alumnosTab;
@@ -41,8 +42,10 @@ public class MainController implements Initializable {
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		alumnosController = new AlumnosController();
+		grupoController = new GrupoController();
 
 		alumnosTab.setContent(alumnosController.getView());
+		grupoTab.setContent(grupoController.getView());
 	}
 
 	public BorderPane getView() {

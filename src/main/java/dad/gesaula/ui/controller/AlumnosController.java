@@ -6,7 +6,6 @@ import java.time.LocalDate;
 import java.util.ResourceBundle;
 
 import dad.gesaula.ui.model.Alumno;
-import dad.gesaula.ui.model.LocalDateAdapter;
 import dad.gesaula.ui.model.Sexo;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
@@ -17,6 +16,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
@@ -29,6 +29,9 @@ import javafx.scene.layout.GridPane;
 import javafx.util.converter.LocalDateStringConverter;
 
 public class AlumnosController implements Initializable {
+
+	private int posicionDejada;
+	private boolean added, deleted;
 
 	@FXML
 	private GridPane alumnoGrid;
@@ -44,6 +47,9 @@ public class AlumnosController implements Initializable {
 
 	@FXML
 	private TextField apellidosText;
+
+	@FXML
+	private Button eliminarButton;
 
 	@FXML
 	private TableColumn<Alumno, LocalDate> fechaNacimientoCol;
@@ -65,7 +71,7 @@ public class AlumnosController implements Initializable {
 
 	@FXML
 	private GridPane view;
-	
+
 	private ListProperty<Alumno> alumnos = new SimpleListProperty<>(FXCollections.observableArrayList());
 	private ObjectProperty<Alumno> selectedAlumno = new SimpleObjectProperty<>();
 
@@ -83,31 +89,75 @@ public class AlumnosController implements Initializable {
 	public void initialize(URL location, ResourceBundle resources) {
 		alumnosTab.itemsProperty().bind(alumnos);
 		selectedAlumno.bind(alumnosTab.getSelectionModel().selectedItemProperty());
+		eliminarButton.disableProperty().bind(selectedAlumno.isNull());
+
+		selectedAlumno.addListener((num) -> seleccionar());
 
 		alumnoGrid.visibleProperty().bind(selectedAlumno.isNotNull());
 		alumnoNoSeleccionadoLabel.visibleProperty().bind(selectedAlumno.isNull());
 		
+		sexoCombo.getItems().addAll(Sexo.values());
+
 		fechaNacimientoCol.setCellValueFactory(v -> v.getValue().fechaNacimientoProperty());
 		nombreCol.setCellValueFactory(v -> v.getValue().nombreProperty());
 		apellidosCol.setCellValueFactory(v -> v.getValue().apellidosProperty());
-		
+
 		fechaNacimientoCol.setCellFactory(TextFieldTableCell.forTableColumn(new LocalDateStringConverter()));
 		nombreCol.setCellFactory(TextFieldTableCell.forTableColumn());
 		apellidosCol.setCellFactory(TextFieldTableCell.forTableColumn());
+
 	}
-	
+
 	public GridPane getView() {
 		return view;
 	}
-	
+
 	@FXML
-    void onEliminarAlumnoAction(ActionEvent event) {
+	void onEliminarAlumnoAction(ActionEvent event) {
+		deleted = true;
 
-    }
+		alumnos.remove(selectedAlumno.get());
+	}
 
-    @FXML
-    void onNuevoAlumnoAction(ActionEvent event) {
+	@FXML
+	void onNuevoAlumnoAction(ActionEvent event) {
+		if (alumnos.size() > 0)
+			added = true;
 
-    }
+		Alumno al = new Alumno();
+		al.setNombre("Sin nombre");
+		al.setApellidos("Sin apellidos");
+		alumnos.add(al);
+	}
 
+	private void seleccionar() {
+		
+		if (alumnos.size() > 0) {
+			alumnos.get(posicionDejada).nombreProperty().unbind();
+			alumnos.get(posicionDejada).apellidosProperty().unbind();
+			alumnos.get(posicionDejada).fechaNacimientoProperty().unbind();
+			alumnos.get(posicionDejada).sexoProperty().unbind();
+			alumnos.get(posicionDejada).repiteProperty().unbind();
+		}
+
+		if (!added && !deleted) {
+			nombreText.setText(selectedAlumno.get().getNombre());
+			apellidosText.setText(selectedAlumno.get().getApellidos());
+			fechaNacimientoDate.setValue(selectedAlumno.get().getFechaNacimiento());
+			sexoCombo.setValue(selectedAlumno.get().getSexo());
+			repiteCheck.setSelected(selectedAlumno.get().isRepite());
+			
+			selectedAlumno.get().nombreProperty().bind(nombreText.textProperty());
+			selectedAlumno.get().apellidosProperty().bind(apellidosText.textProperty());
+			selectedAlumno.get().fechaNacimientoProperty().bind(fechaNacimientoDate.valueProperty());
+			selectedAlumno.get().sexoProperty().bind(sexoCombo.valueProperty());
+			selectedAlumno.get().repiteProperty().bind(repiteCheck.selectedProperty());
+			
+
+			posicionDejada = alumnos.indexOf(selectedAlumno.get());
+		}
+
+		added = false;
+		deleted = false;
+	}
 }
