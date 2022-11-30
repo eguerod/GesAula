@@ -3,6 +3,7 @@ package dad.gesaula.ui.controller;
 import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import dad.gesaula.ui.model.Alumno;
@@ -16,7 +17,9 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
@@ -24,6 +27,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.GridPane;
 import javafx.util.converter.LocalDateStringConverter;
@@ -89,13 +93,13 @@ public class AlumnosController implements Initializable {
 	public void initialize(URL location, ResourceBundle resources) {
 		alumnosTab.itemsProperty().bind(alumnos);
 		selectedAlumno.bind(alumnosTab.getSelectionModel().selectedItemProperty());
-		eliminarButton.disableProperty().bind(selectedAlumno.isNull());
+//		eliminarButton.disableProperty().bind(selectedAlumno.isNull());
 
 		selectedAlumno.addListener((num) -> seleccionar());
 
 		alumnoGrid.visibleProperty().bind(selectedAlumno.isNotNull());
 		alumnoNoSeleccionadoLabel.visibleProperty().bind(selectedAlumno.isNull());
-		
+
 		sexoCombo.getItems().addAll(Sexo.values());
 
 		fechaNacimientoCol.setCellValueFactory(v -> v.getValue().fechaNacimientoProperty());
@@ -114,9 +118,25 @@ public class AlumnosController implements Initializable {
 
 	@FXML
 	void onEliminarAlumnoAction(ActionEvent event) {
-		deleted = true;
-
-		alumnos.remove(selectedAlumno.get());
+		Alert alerta;
+		if (selectedAlumno.isNull().get()) {
+			alerta = new Alert(AlertType.ERROR);
+			alerta.setTitle("Error");
+			alerta.setHeaderText("Error al eliminar el alumno");
+			alerta.setContentText("No hay ningún alumno seleccionado.");
+			alerta.showAndWait();
+		} else {
+			alerta = new Alert(AlertType.CONFIRMATION);
+			alerta.setTitle("Eliminar alumno");
+			alerta.setHeaderText("Se va a eliminar el alumno '" + selectedAlumno.get().getNombre() + " "
+					+ selectedAlumno.get().getApellidos() + "'.");
+			alerta.setContentText("¿Está seguro?");
+			Optional<ButtonType> result = alerta.showAndWait();
+			if (result.get() == ButtonType.OK) {
+				deleted = true;
+				alumnos.remove(selectedAlumno.get());
+			}
+		}
 	}
 
 	@FXML
@@ -131,7 +151,7 @@ public class AlumnosController implements Initializable {
 	}
 
 	private void seleccionar() {
-		
+
 		if (alumnos.size() > 0) {
 			alumnos.get(posicionDejada).nombreProperty().unbind();
 			alumnos.get(posicionDejada).apellidosProperty().unbind();
@@ -146,18 +166,26 @@ public class AlumnosController implements Initializable {
 			fechaNacimientoDate.setValue(selectedAlumno.get().getFechaNacimiento());
 			sexoCombo.setValue(selectedAlumno.get().getSexo());
 			repiteCheck.setSelected(selectedAlumno.get().isRepite());
-			
+
 			selectedAlumno.get().nombreProperty().bind(nombreText.textProperty());
 			selectedAlumno.get().apellidosProperty().bind(apellidosText.textProperty());
 			selectedAlumno.get().fechaNacimientoProperty().bind(fechaNacimientoDate.valueProperty());
 			selectedAlumno.get().sexoProperty().bind(sexoCombo.valueProperty());
 			selectedAlumno.get().repiteProperty().bind(repiteCheck.selectedProperty());
-			
 
 			posicionDejada = alumnos.indexOf(selectedAlumno.get());
 		}
 
 		added = false;
 		deleted = false;
+	}
+
+	public ListProperty<Alumno> getAlumnos() {
+		return alumnos;
+	}
+
+	public void nuevoGrupo() {
+		alumnos.clear();
+		deleted = true;
 	}
 }
