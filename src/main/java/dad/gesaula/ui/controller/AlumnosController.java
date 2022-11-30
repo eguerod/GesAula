@@ -141,8 +141,8 @@ public class AlumnosController implements Initializable {
 
 	@FXML
 	void onNuevoAlumnoAction(ActionEvent event) {
-		if (alumnos.size() > 0)
-			added = true;
+
+		added = true;
 
 		Alumno al = new Alumno();
 		al.setNombre("Sin nombre");
@@ -152,7 +152,7 @@ public class AlumnosController implements Initializable {
 
 	private void seleccionar() {
 
-		if (alumnos.size() > 0) {
+		if (alumnos.size() > posicionDejada) {
 			alumnos.get(posicionDejada).nombreProperty().unbind();
 			alumnos.get(posicionDejada).apellidosProperty().unbind();
 			alumnos.get(posicionDejada).fechaNacimientoProperty().unbind();
